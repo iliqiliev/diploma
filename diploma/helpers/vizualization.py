@@ -1,26 +1,29 @@
+"""Helper functions for `matplotlib` visualization."""
+
 from random import sample
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from matplotlib import pyplot as plt
-from numpy import ndarray
 from torch import Tensor, no_grad
-from torch.nn import Module
-from torchattacks.attack import Attack
 
-from .base_model import BaseModel
 from .helpers import denormalize
-from .types import DataLoaderTensor, Normalization
+
+if TYPE_CHECKING:
+    from numpy import ndarray
+    from torch.nn import Module
+    from torchattacks.attack import Attack
+
+    from .base_model import BaseModel
+    from .types import DataLoaderTensor, Normalization
 
 
 def to_numpy(tensor: Tensor) -> ndarray:
     """Convert a PyTorch tensor to a NumPy array."""
-
     return tensor.cpu().numpy().transpose(1, 2, 0)
 
 
 def show_perturbation_example(Model: BaseModel, attack: Attack, rows: int = 3) -> None:
     """Display a perturbation example using `matplotlib`."""
-
     nn_module: Module = Model.get()
 
     test_loader: DataLoaderTensor = Model.test_loader
@@ -44,7 +47,7 @@ def show_perturbation_example(Model: BaseModel, attack: Attack, rows: int = 3) -
         image = images[[sample_index]].to(device)
         label = labels[[sample_index]].to(device)
 
-        adv_image = cast(Tensor, attack(image, label))
+        adv_image = cast("Tensor", attack(image, label))
 
         orig_display = denormalize(image[0].cpu(), normalization)
         adv_display = denormalize(adv_image[0].cpu(), normalization)
