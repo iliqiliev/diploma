@@ -1,18 +1,21 @@
-from logging import DEBUG, ERROR, INFO, WARNING, StreamHandler, getLogger, warning
-from typing import cast
+"""Helper functions."""
+
+from logging import DEBUG, ERROR, INFO, WARNING, StreamHandler, getLogger
+from typing import TYPE_CHECKING, cast
 
 from torch import Tensor, cuda, device, enable_grad, no_grad, tensor
 from torch import max as torch_max
-from torch.nn import Module
 from torch.utils.data import DataLoader
-from torchattacks.attack import Attack
 
-from .types import DataLoaderTensor, Normalization
+if TYPE_CHECKING:
+    from torch.nn import Module
+    from torchattacks.attack import Attack
+
+    from .types import DataLoaderTensor, Normalization
 
 
 def denormalize(normalized_tensor: Tensor, normalization_used: Normalization) -> Tensor:
     """Convert normalized tensor back to [0, 1] pixel space."""
-
     mean, std = normalization_used
 
     mean_tensor = tensor(mean, device=normalized_tensor.device).view(-1, 1, 1)
@@ -29,6 +32,7 @@ def get_accuracy(
     max_samples: int | None = None,
     max_batch_size: int | None = None,
 ) -> float:
+    """Return the accuracy of the model."""
     device = get_torch_device()
 
     _ = model.eval()
@@ -47,17 +51,17 @@ def get_accuracy(
     labels: Tensor
     outputs: Tensor
 
-    for inputs, labels in dataloader:
+    for _inputs_, _labels_ in dataloader:
         if max_samples is not None and total >= max_samples:
             break
 
-        total += labels.size(0)
+        total += _labels_.size(0)
 
-        inputs, labels = inputs.to(device), labels.to(device)
+        inputs, labels = _inputs_.to(device), _labels_.to(device)
 
         if attack is not None:
             with enable_grad():
-                inputs = cast(Tensor, attack(inputs, labels))
+                inputs = cast("Tensor", attack(inputs, labels))
 
         outputs = model(inputs)
 
@@ -68,13 +72,14 @@ def get_accuracy(
 
 
 def get_torch_device(force: str | None = None) -> device:
+    """Return the torch device to use. Falls back to CPU if no GPU is available."""
     if force is not None:
         return device(force)
 
     if cuda.is_available():
         return device("cuda")
 
-    warning("get_torch_device(): Falling CPU as fallback")
+    log.warning("get_torch_device(): Falling CPU as fallback")
     return device("cpu")
 
 
@@ -83,6 +88,7 @@ log.addHandler(StreamHandler())
 
 
 def set_log_verbosity(verbosity: int) -> None:
+    """Set the log verbosity level, ranging from 0 (ERROR) to 3 (DEBUG)."""
     logging_verbosities: dict[int, int | str] = {
         0: ERROR,
         1: WARNING,
