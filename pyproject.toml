@@ -46,6 +46,8 @@ docstring-code-format = true
 select = ["ALL"]
 ignore = [
   "B019",
+  "D203",
+  "D213",
   "N803",
   "N817",
   "RUF001",
