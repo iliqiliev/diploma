@@ -1,13 +1,19 @@
+"""Abstract base model class."""
+
 from abc import ABC, abstractmethod
 from functools import cache, partial
-from typing import Callable
+from typing import TYPE_CHECKING, ClassVar
 
-from torch.nn import Module
 from torchattacks import CW, FGSM, JSMA
 from torchattacks import DeepFool as DF
-from torchattacks.attack import Attack
 
-from .types import DataLoaderTensor, Normalization
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from torch.nn import Module
+    from torchattacks.attack import Attack
+
+    from .types import DataLoaderTensor, Normalization
 
 
 class BaseModel(ABC):
@@ -22,7 +28,7 @@ class BaseModel(ABC):
     CW_STEPS: int = 50
     CW_LR: float = 0.1
 
-    ATTACKS: dict[str, tuple[bool, Callable[..., Attack]]] = {
+    ATTACKS: ClassVar[dict[str, tuple[bool, Callable[..., Attack]]]] = {
         "FGSM": (False, partial(FGSM, eps=FGSM_EPS)),
         "JSMA": (True,  partial(JSMA, theta=JSMA_THETA, gamma=JSMA_GAMMA)),
           "DF": (True,  partial(DF,   steps=DF_STEPS,   overshoot=DF_OVERSHOOT)),
@@ -41,7 +47,8 @@ class BaseModel(ABC):
     * `"gray"` - for grayscale images
     """
 
-    def __init__(self, name: str, normalization: Normalization):
+    def __init__(self, name: str, normalization: Normalization) -> None:
+        """Initialize the base model with the given name and normalization."""
         self.name: str = name
         self.normalization: Normalization = normalization
 
@@ -54,10 +61,11 @@ class BaseModel(ABC):
         AT: Attack | None = None,
         GDA: float | None = None,
     ) -> Module:
-        """Returns the model as a `torch.nn.Module`."""
+        """Return the model as a `torch.nn.Module`."""
         ...
 
     def get_attack(self, attack_name: str) -> tuple[Attack, bool]:
+        """Return the attack and whether it is slow."""
         is_slow, attack_callable = self.ATTACKS[attack_name]
 
         attack = attack_callable(model=self.get())
@@ -67,12 +75,15 @@ class BaseModel(ABC):
 
     @property
     @abstractmethod
-    def loaders(self) -> tuple[DataLoaderTensor, DataLoaderTensor]: ...
+    def loaders(self) -> tuple[DataLoaderTensor, DataLoaderTensor]:
+        """Return the train and test loaders."""
 
     @property
     def train_loader(self) -> DataLoaderTensor:
+        """Return the train loader."""
         return self.loaders[0]
 
     @property
     def test_loader(self) -> DataLoaderTensor:
+        """Return the test loader."""
         return self.loaders[1]
