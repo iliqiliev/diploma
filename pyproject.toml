@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-diploma = "diploma.main:main"
+diploma = "diploma.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -38,6 +38,15 @@ packages = ["diploma"]
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "T201",
+]
 
 [tool.uv]
 environments = [

@@ -1,3 +1,5 @@
+"""Entrypoint file."""
+
 from argparse import ArgumentParser
 from dataclasses import dataclass
 
@@ -12,6 +14,8 @@ from .models import Cifar10, Mnist
 
 @dataclass
 class MyNamespace:
+    """Used for typing the arguments."""
+
     model: str
     attacks: list[str]
     defence: str | None
@@ -68,20 +72,25 @@ models: dict[str, BaseModel] = {
 
 set_log_verbosity(args.verbose)
 
+GDA_SIGMA = 0.3
+
 
 def print_formatted_accuracy(
-    attack: str | None = None, defence: str | None = None
+    attack: str | None = None,
+    defence: str | None = None,
 ) -> None:
+    """Print accuracy in a fixed-width format."""
     attack = attack or "None"
     defence = defence or "None"
 
     print(f"Accuracy (Attack: {attack:4}, Defence: {defence:4}): ...", end=" ")
 
 
-def main():
-    Model = models[args.model]
-    model_clean = Model.get()
-    test_loader = Model.test_loader
+def main() -> None:
+    """Execute using `uv run diploma`."""
+    model = models[args.model]
+    model_clean = model.get()
+    test_loader = model.test_loader
 
     print()
     print_formatted_accuracy(attack=None, defence=None)
@@ -95,7 +104,7 @@ def main():
     print(f"{100 * clean_accuracy:.2f}%")
 
     for attack_name in args.attacks:
-        current_attack, is_slow_attack = Model.get_attack(attack_name)
+        current_attack, is_slow_attack = model.get_attack(attack_name)
 
         max_samples: int | None = None
         max_batch_size: int | None = None
@@ -116,14 +125,13 @@ def main():
         print(f"{100 * adversarial_accuracy_undefended:.2f}%")
 
         if args.vizualize:
-            show_perturbation_example(Model, current_attack)
+            show_perturbation_example(model, current_attack)
 
         match args.defence:
             case "AT":
-                model_defended = Model.get(AT=current_attack)
+                model_defended = model.get(AT=current_attack)
             case "GDA":
-                GDA_SIGMA = 0.3
-                model_defended = Model.get(GDA=GDA_SIGMA)
+                model_defended = model.get(GDA=GDA_SIGMA)
             case _:
                 continue
 
