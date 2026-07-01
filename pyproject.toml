@@ -45,8 +45,14 @@ docstring-code-format = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "B019",
+  "N803",
+  "RUF001",
   "T201",
 ]
+
+[tool.ruff.lint.pylint]
+max-statements = 100
 
 [tool.uv]
 environments = [
