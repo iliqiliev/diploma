@@ -8,7 +8,6 @@ from .helpers import (
     get_accuracy,
     get_torch_device,
     log,
-    set_log_verbosity,
 )
 from .types import (
     DataLoaderFunc,
@@ -30,6 +29,5 @@ __all__ = [
     "get_accuracy",
     "get_torch_device",
     "log",
-    "set_log_verbosity",
     "show_perturbation_example",
 ]

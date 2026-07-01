@@ -1,6 +1,6 @@
 """Helper functions."""
 
-from logging import DEBUG, ERROR, INFO, WARNING, StreamHandler, getLogger
+from logging import StreamHandler, getLogger
 from typing import TYPE_CHECKING, cast
 
 from torch import Tensor, cuda, device, enable_grad, no_grad, tensor
@@ -85,17 +85,4 @@ def get_torch_device(force: str | None = None) -> device:
 
 log = getLogger("diploma")
 log.addHandler(StreamHandler())
-
-
-def set_log_verbosity(verbosity: int) -> None:
-    """Set the log verbosity level, ranging from 0 (ERROR) to 3 (DEBUG)."""
-    logging_verbosities: dict[int, int | str] = {
-        0: ERROR,
-        1: WARNING,
-        2: INFO,
-        3: DEBUG,
-    }
-
-    verbosity = min(verbosity, max(logging_verbosities))
-
-    log.setLevel(logging_verbosities[verbosity])
+log.setLevel("INFO")

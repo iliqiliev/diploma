@@ -3,12 +3,7 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
 
-from .helpers import (
-    BaseModel,
-    get_accuracy,
-    set_log_verbosity,
-    show_perturbation_example,
-)
+from .helpers import BaseModel, get_accuracy, log, show_perturbation_example
 from .models import Cifar10, Mnist
 
 
@@ -20,7 +15,7 @@ class MyNamespace:
     attacks: list[str]
     defence: str | None
     vizualize: bool
-    verbose: int
+    verbose: bool
 
 
 arg_parser = ArgumentParser()
@@ -59,9 +54,8 @@ _ = arg_parser.add_argument(
     "-v",
     "--verbose",
     required=False,
-    action="count",
-    default=0,
-    help="Logging verbosity.\nCan be specified up to 3 times like `-vvv`.",
+    action="store_true",
+    help="Show debug loggin messages.",
 )
 args = arg_parser.parse_args(namespace=MyNamespace)
 
@@ -70,7 +64,9 @@ models: dict[str, BaseModel] = {
     "MNIST": Mnist(),
 }
 
-set_log_verbosity(args.verbose)
+if args.verbose:
+    log.setLevel("DEBUG")
+
 
 GDA_SIGMA = 0.3
 
