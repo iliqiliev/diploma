@@ -77,6 +77,7 @@ class BaseModel(ABC):
     @abstractmethod
     def loaders(self) -> tuple[DataLoaderTensor, DataLoaderTensor]:
         """Return the train and test loaders."""
+        ...
 
     @property
     def train_loader(self) -> DataLoaderTensor:
