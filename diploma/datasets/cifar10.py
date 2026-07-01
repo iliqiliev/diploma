@@ -1,12 +1,16 @@
-from pathlib import Path
-from typing import cast
+"""CIFAR-10 dataset utilities."""
+
+from typing import TYPE_CHECKING, cast
 
 from torch import float32
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import v2
 
-from ..helpers import DataLoaderTensor, Normalization
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from diploma.helpers import DataLoaderTensor, Normalization
 
 CIFAR10_CLASSES: int = 10
 CIFAR10_RESOLUTION: int = 32
@@ -21,8 +25,7 @@ def get_cifar10_loaders(
     num_workers: int = 8,
     data_dir: Path | str = "./data/CIFAR10",
 ) -> tuple[DataLoaderTensor, DataLoaderTensor]:
-    """Returns the CIFAR-10 train and test data loaders."""
-
+    """Return the CIFAR-10 train and test data loaders."""
     train_transform = v2.Compose(
         [
             v2.RandomCrop(CIFAR10_RESOLUTION, padding=4),
@@ -30,7 +33,7 @@ def get_cifar10_loaders(
             v2.ToImage(),
             v2.ToDtype(float32, scale=True),
             v2.Normalize(mean=CIFAR10_MEAN, std=CIFAR10_STD),
-        ]
+        ],
     )
     train_set = CIFAR10(
         root=data_dir,
@@ -39,7 +42,7 @@ def get_cifar10_loaders(
         transform=train_transform,
     )
     train_loader = cast(
-        DataLoaderTensor,
+        "DataLoaderTensor",
         DataLoader(
             dataset=train_set,
             batch_size=batch_size,
@@ -53,7 +56,7 @@ def get_cifar10_loaders(
             v2.ToImage(),
             v2.ToDtype(float32, scale=True),
             v2.Normalize(mean=CIFAR10_MEAN, std=CIFAR10_STD),
-        ]
+        ],
     )
     test_set = CIFAR10(
         root=data_dir,
@@ -62,7 +65,7 @@ def get_cifar10_loaders(
         transform=test_transform,
     )
     test_loader = cast(
-        DataLoaderTensor,
+        "DataLoaderTensor",
         DataLoader(
             dataset=test_set,
             batch_size=batch_size,

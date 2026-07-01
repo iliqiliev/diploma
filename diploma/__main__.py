@@ -1,4 +1,4 @@
-"""Entrypoint file."""
+"""Diploma entrypoint file."""
 
 from argparse import ArgumentParser
 from dataclasses import dataclass

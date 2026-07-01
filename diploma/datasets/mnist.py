@@ -1,12 +1,16 @@
-from pathlib import Path
-from typing import cast
+"""MNIST dataset utilities."""
+
+from typing import TYPE_CHECKING, cast
 
 from torch import float32
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision.transforms import v2
 
-from ..helpers import DataLoaderTensor, Normalization
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from diploma.helpers import DataLoaderTensor, Normalization
 
 MNIST_CLASSES: int = 10
 MNIST_RESOLUTION: int = 28
@@ -21,15 +25,14 @@ def get_mnist_loaders(
     num_workers: int = 8,
     data_dir: Path | str = "./data",
 ) -> tuple[DataLoaderTensor, DataLoaderTensor]:
-    """Returns the MNIST train and test data loaders."""
-
+    """Return the MNIST train and test data loaders."""
     train_transform = v2.Compose(
         [
             v2.RandomCrop(MNIST_RESOLUTION, padding=3),
             v2.ToImage(),
             v2.ToDtype(float32, scale=True),
             v2.Normalize(mean=MNIST_MEAN, std=MNIST_STD),
-        ]
+        ],
     )
     train_set = MNIST(
         root=data_dir,
@@ -38,7 +41,7 @@ def get_mnist_loaders(
         transform=train_transform,
     )
     train_loader = cast(
-        DataLoaderTensor,
+        "DataLoaderTensor",
         DataLoader(
             dataset=train_set,
             batch_size=batch_size,
@@ -52,7 +55,7 @@ def get_mnist_loaders(
             v2.ToImage(),
             v2.ToDtype(float32, scale=True),
             v2.Normalize(mean=MNIST_MEAN, std=MNIST_STD),
-        ]
+        ],
     )
     test_set = MNIST(
         root=data_dir,
@@ -61,7 +64,7 @@ def get_mnist_loaders(
         transform=test_transform,
     )
     test_loader = cast(
-        DataLoaderTensor,
+        "DataLoaderTensor",
         DataLoader(
             dataset=test_set,
             batch_size=batch_size,
