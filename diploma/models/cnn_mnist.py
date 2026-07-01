@@ -1,7 +1,8 @@
+"""CNN model for MNIST classification."""
+
 from functools import cache
-from logging import info
 from pathlib import Path
-from typing import cast, override
+from typing import TYPE_CHECKING, cast, override
 
 from rich.progress import track
 from torch import Tensor, cat, load, randn_like, save
@@ -19,19 +20,24 @@ from torch.nn import (
 )
 from torch.optim import SGD
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
-from torchattacks.attack import Attack
 
-from ..datasets import MNIST_CLASSES, MNIST_NORMALIZATION, get_mnist_loaders
-from ..helpers import BaseModel, DataLoaderTensor, get_torch_device
+from diploma.datasets import MNIST_CLASSES, MNIST_NORMALIZATION, get_mnist_loaders
+from diploma.helpers import BaseModel, DataLoaderTensor, get_torch_device, log
+
+if TYPE_CHECKING:
+    from torchattacks.attack import Attack
 
 
 class Mnist(BaseModel):
+    """MNIST classifier model class."""
+
     CMAP: str | None = "gray"
     """
     The MNIST datasets consists of grayscale samples => a value of `"gray"` is used.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the MNIST model."""
         super().__init__(
             name="cnn_mnist",
             normalization=MNIST_NORMALIZATION,
@@ -45,10 +51,10 @@ class Mnist(BaseModel):
         AT: Attack | None = None,
         GDA: float | None = None,
     ) -> Module:
-        """
-        Returns CNN (Convolutional Neural Network) model for MNIST classification.
+        """Return CNN model for MNIST classification.
 
-        Using the default values for `epochs` and `warmup_epochs` gives around 99% accuracy.
+        Using the default values for `epochs` and `warmup_epochs`
+        gives around 99% accuracy.
 
         The `AT` (Adversarial Training) parameter can be used to
         specify an adversarial training attack for the model to train against.
@@ -56,21 +62,21 @@ class Mnist(BaseModel):
         The `GDA` (Gaussian Data Augmentation) parameter can be used
         to specify the strength. The value is a `float` type in the range [0, 1].
         """
-
         torch_device = get_torch_device()
 
         if AT is not None:
             attack_name = AT.__class__.__name__
-            info(f"Using AT defence against {attack_name} ...")
+            log.info(f"Using AT defence against {attack_name} ...")
 
             model_path = Path(f"./data/weights/{self.name}_{attack_name}.pth")
             checkpoint_path = Path(f"./data/checkpoints/{self.name}_{attack_name}.pth")
 
         elif GDA is not None:
             if not 0 <= GDA <= 1:
-                raise ValueError("GDA strength must be in the range [0, 1].")
+                error = f"GDA strength must be in the range [0, 1], got {GDA}."
+                raise ValueError(error)
 
-            info(f"Using GDA defence with strength σ={GDA} ...")
+            log.info(f"Using GDA defence with strength σ={GDA} ...")
 
             model_path = Path(f"./data/weights/{self.name}_GDA.pth")
             checkpoint_path = Path(f"./data/checkpoints/{self.name}_GDA.pth")
@@ -86,11 +92,11 @@ class Mnist(BaseModel):
         model = model.to(torch_device)
 
         if model_path.exists():
-            info(f"Loading model weights from: {model_path}")
+            log.info(f"Loading model weights from: {model_path}")
             _ = model.load_state_dict(load(model_path))
             return model
 
-        info("Model weights not found.")
+        log.info("Model weights not found.")
         train_loader, _ = get_mnist_loaders()
 
         optimizer = SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
@@ -117,19 +123,20 @@ class Mnist(BaseModel):
             print(f"Resuming from epoch {start_epoch}/{epochs}: {checkpoint_path}")
 
         for epoch in track(
-            range(start_epoch, epochs), f"Training for {epochs} epochs ..."
+            sequence=range(start_epoch, epochs),
+            description=f"Training for {epochs} epochs ...",
         ):
             _ = model.train()
 
             inputs: Tensor
             labels: Tensor
 
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(torch_device), labels.to(torch_device)
+            for _inputs_, _labels_ in train_loader:
+                inputs, labels = _inputs_.to(torch_device), _labels_.to(torch_device)
 
                 if AT is not None:
                     _ = model.eval()
-                    adv_inputs = cast(Tensor, AT(inputs, labels))
+                    adv_inputs = cast("Tensor", AT(inputs, labels))
                     _ = model.train()
 
                     inputs = cat([inputs, adv_inputs], dim=0)
@@ -155,7 +162,7 @@ class Mnist(BaseModel):
                 checkpoint_path,
             )
 
-        info(f"Saving model to: {model_path}")
+        log.info(f"Saving model to: {model_path}")
         save(model.state_dict(), model_path)
         checkpoint_path.unlink(missing_ok=True)
 
@@ -164,11 +171,15 @@ class Mnist(BaseModel):
     @property
     @cache
     def loaders(self) -> tuple[DataLoaderTensor, DataLoaderTensor]:
+        """MNIST train and test data loaders."""
         return get_mnist_loaders()
 
 
 class MnistCNN(Module):
+    """CNN for MNIST."""
+
     def __init__(self) -> None:
+        """Initialize the CNN."""
         super().__init__()
 
         self.features: Sequential = Sequential(

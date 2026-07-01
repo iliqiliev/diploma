@@ -1,4 +1,4 @@
-"""ResNet18 model for CIFAR10 classification."""
+"""ResNet18 CNN model for CIFAR-10 classification."""
 
 from functools import cache
 from pathlib import Path
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class Cifar10(BaseModel):
-    """CIFAR-10 model class."""
+    """CIFAR-10 classifier model class."""
 
     def __init__(self) -> None:
         """Initialize the CIFAR-10 model."""
