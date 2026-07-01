@@ -1,0 +1,67 @@
+[project]
+name = "diploma"
+version = "0.9.0"
+description = "Моята дипломна работа."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  "matplotlib>=3.10.9",
+  "numpy>=2.4.6",
+  "pytorch-triton-rocm; sys_platform == 'linux'",
+  "rich>=15.0.0",
+  "torch>=2.12.0",
+  "torchattacks>=3.5.1",
+  "torchvision>=0.27.0",
+  "triton-rocm; sys_platform == 'linux'",
+]
+
+[project.scripts]
+diploma = "diploma.main:main"
+
+[dependency-groups]
+dev = [
+  "pandas-stubs>=3.0.3.260530",
+  "scipy-stubs>=1.17.1.5",
+]
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.basedpyright]
+typeCheckingMode = "recommended"
+reportAny = false
+allowedUntypedLibraries = ["torchattacks", "torchvision"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["diploma"]
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv]
+environments = [
+  "platform_system == 'Linux'",
+  "platform_system == 'Windows'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm7.2"
+explicit = true
+
+[[tool.uv.sources.pytorch-triton-rocm]]
+index = "pytorch-rocm"
+marker = "sys_platform == 'linux'"
+
+[[tool.uv.sources.torch]]
+index = "pytorch-rocm"
+marker = "sys_platform == 'linux'"
+
+[[tool.uv.sources.torchvision]]
+index = "pytorch-rocm"
+marker = "sys_platform == 'linux'"
+
+[[tool.uv.sources.triton-rocm]]
+index = "pytorch-rocm"
+marker = "sys_platform == 'linux'"
