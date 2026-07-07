@@ -14,7 +14,8 @@ class MyNamespace:
     model: str
     attacks: list[str]
     defence: str | None
-    vizualize: bool
+    fast: bool
+    visual: bool
     verbose: bool
 
 
@@ -38,22 +39,25 @@ _ = arg_parser.add_argument(
 _ = arg_parser.add_argument(
     "-d",
     "--defence",
-    required=False,
     choices=["AT", "GDA"],
     help="Choose defence to use.",
 )
 _ = arg_parser.add_argument(
-    "-q",
-    "--quiet",
-    required=False,
+    "-f",
+    "--fast",
+    action="store_true",
+    help="Evalute accuracy of slow attacks with a reduced number of samples.",
+)
+_ = arg_parser.add_argument(
+    "-n",
+    "--no-visual",
+    dest="visual",
     action="store_false",
-    dest="vizualize",
-    help="Do not display graphical examples.",
+    help="Do not display graphical attacks visualizations.",
 )
 _ = arg_parser.add_argument(
     "-v",
     "--verbose",
-    required=False,
     action="store_true",
     help="Show debug loggin messages.",
 )
@@ -105,7 +109,8 @@ def main() -> None:
         max_samples: int | None = None
         max_batch_size: int | None = None
 
-        if is_slow_attack:
+        if args.fast and is_slow_attack:
+            log.debug("Fast attack enabled: reducing samples and batch size.")
             max_samples = 500
             max_batch_size = 100
 
@@ -120,7 +125,7 @@ def main() -> None:
         )
         print(f"{100 * adversarial_accuracy_undefended:.2f}%")
 
-        if args.vizualize:
+        if args.visual:
             show_perturbation_example(model, current_attack)
 
         match args.defence:
